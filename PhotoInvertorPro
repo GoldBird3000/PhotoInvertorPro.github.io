@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Invertor Pro</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-color: #111;
+        }
+        
+        /* Анимированный фон с частицами */
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+        }
+        
+        .container {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            padding: 40px;
+            width: 90%;
+            max-width: 700px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin: 20px;
+        }
+        
+        .container.hidden {
+            transform: translateY(30px);
+            opacity: 0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            background: linear-gradient(to right, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
+        }
+        
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 40px 30px;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            background: rgba(20, 20, 20, 0.5);
+        }
+        
+        .upload-area:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(40, 40, 40, 0.5);
+            transform: translateY(-3px);
+        }
+        
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.05) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(30deg);
+            transition: all 0.6s ease;
+        }
+        
+        .upload-area:hover::before {
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { left: -50%; }
+            100% { left: 150%; }
+        }
+        
+        .upload-area p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover p {
+            color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.02);
+        }
+        
+        .upload-area i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+            color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover i {
+            color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.1) translateY(-5px);
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .image-container {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .image-box {
+            flex: 1;
+            min-width: 250px;
+            text-align: center;
+            background: rgba(10, 10, 10, 0.7);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+            transition: all 0.4s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .image-box.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .image-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            background: rgba(20, 20, 20, 0.8);
+        }
+        
+        .image-box h3 {
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        canvas {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        canvas:hover {
+            transform: scale(1.01);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .buttons {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #333, #555);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            min-width: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #444, #666);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+        
+        button:hover::after {
+            opacity: 1;
+        }
+        
+        button span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        button:disabled {
+            background: linear-gradient(45deg, #222, #333);
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        button:disabled::after {
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: rgba(255, 255, 255, 0.8);
+            animation: spin 1s ease-in-out infinite;
+            right: 15px;
+        }
+        
+        button.loading-btn .loading {
+            display: block;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Анимация появления */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="container">
+        <h1>Photo Invertor Pro</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Перетащите сюда фото или кликните для выбора</p>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+        
+        <div class="buttons">
+            <button id="invertBtn" disabled>
+                <span>Инвертировать</span>
+                <div class="loading"></div>
+            </button>
+            <button id="downloadBtn" disabled>
+                <span>Скачать</span>
+                <div class="loading"></div>
+            </button>
+            <button id="resetBtn" disabled>
+                <span>Сбросить</span>
+            </button>
+        </div>
+        
+        <div class="image-container">
+            <div class="image-box" id="originalBox">
+                <h3>Оригинал</h3>
+                <canvas id="originalCanvas"></canvas>
+            </div>
+            <div class="image-box" id="invertedBox">
+                <h3>Результат</h3>
+                <canvas id="invertedCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипт для анимированного фона -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация анимированного фона
+            particlesJS("particles-js", {
+                "particles": {
+                    "number": {
+                        "value": 80,
+                        "density": {
+                            "enable": true,
+                            "value_area": 800
+                        }
+                    },
+                    "color": {
+                        "value": "#ffffff"
+                    },
+                    "shape": {
+                        "type": "circle",
+                        "stroke": {
+                            "width": 0,
+                            "color": "#000000"
+                        },
+                        "polygon": {
+                            "nb_sides": 5
+                        }
+                    },
+                    "opacity": {
+                        "value": 0.3,
+                        "random": true,
+                        "anim": {
+                            "enable": true,
+                            "speed": 1,
+                            "opacity_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "size": {
+                        "value": 3,
+                        "random": true,
+                        "anim": {
+                            "enable": true,
+                            "speed": 2,
+                            "size_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "line_linked": {
+                        "enable": true,
+                        "distance": 150,
+                        "color": "#555555",
+                        "opacity": 0.2,
+                        "width": 1
+                    },
+                    "move": {
+                        "enable": true,
+                        "speed": 1,
+                        "direction": "none",
+                        "random": true,
+                        "straight": false,
+                        "out_mode": "out",
+                        "bounce": false,
+                        "attract": {
+                            "enable": true,
+                            "rotateX": 600,
+                            "rotateY": 1200
+                        }
+                    }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": {
+                        "onhover": {
+                            "enable": true,
+                            "mode": "grab"
+                        },
+                        "onclick": {
+                            "enable": true,
+                            "mode": "push"
+                        },
+                        "resize": true
+                    },
+                    "modes": {
+                        "grab": {
+                            "distance": 140,
+                            "line_linked": {
+                                "opacity": 0.5
+                            }
+                        },
+                        "bubble": {
+                            "distance": 400,
+                            "size": 40,
+                            "duration": 2,
+                            "opacity": 8,
+                            "speed": 3
+                        },
+                        "repulse": {
+                            "distance": 200,
+                            "duration": 0.4
+                        },
+                        "push": {
+                            "particles_nb": 4
+                        },
+                        "remove": {
+                            "particles_nb": 2
+                        }
+                    }
+                },
+                "retina_detect": true
+            });
+
+            // Основной код приложения
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const originalCanvas = document.getElementById('originalCanvas');
+            const invertedCanvas = document.getElementById('invertedCanvas');
+            const invertBtn = document.getElementById('invertBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const originalBox = document.getElementById('originalBox');
+            const invertedBox = document.getElementById('invertedBox');
+            
+            let originalCtx = originalCanvas.getContext('2d');
+            let invertedCtx = invertedCanvas.getContext('2d');
+            let currentImage = null;
+            
+            // Плавное появление контейнера
+            setTimeout(() => {
+                document.querySelector('.container').classList.remove('hidden');
+            }, 100);
+            
+            // Обработка клика по области загрузки
+            uploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            // Обработка перетаскивания файла
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                uploadArea.style.backgroundColor = 'rgba(50, 50, 50, 0.5)';
+                uploadArea.querySelector('i').style.transform = 'scale(1.2) translateY(-8px)';
+                uploadArea.querySelector('p').style.transform = 'scale(1.05)';
+            });
+            
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                uploadArea.style.backgroundColor = 'rgba(20, 20, 20, 0.5)';
+                uploadArea.querySelector('i').style.transform = '';
+                uploadArea.querySelector('p').style.transform = '';
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                uploadArea.style.backgroundColor = 'rgba(20, 20, 20, 0.5)';
+                uploadArea.querySelector('i').style.transform = '';
+                uploadArea.querySelector('p').style.transform = '';
+                
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect(e);
+                }
+            });
+            
+            // Обработка выбора файла
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            function handleFileSelect(e) {
+                const file = e.target.files[0];
+                if (!file || !file.type.match('image.*')) {
+                    showError('Пожалуйста, выберите изображение!');
+                    return;
+                }
+                
+                // Показываем анимацию загрузки
+                invertBtn.classList.add('loading-btn');
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Устанавливаем размеры canvas
+                        const maxWidth = 300;
+                        const ratio = maxWidth / img.width;
+                        const height = img.height * ratio;
+                        
+                        originalCanvas.width = maxWidth;
+                        originalCanvas.height = height;
+                        invertedCanvas.width = maxWidth;
+                        invertedCanvas.height = height;
+                        
+                        // Рисуем оригинальное изображение
+                        originalCtx.drawImage(img, 0, 0, maxWidth, height);
+                        
+                        // Сохраняем ссылку на изображение
+                        currentImage = img;
+                        
+                        // Активируем кнопки
+                        invertBtn.disabled = false;
+                        resetBtn.disabled = false;
+                        invertBtn.classList.remove('loading-btn');
+                        
+                        // Показываем блоки с изображениями с анимацией
+                        originalBox.classList.add('visible');
+                        setTimeout(() => {
+                            invertedBox.classList.add('visible');
+                        }, 200);
+                    };
+                    
+                    img.onerror = function() {
+                        showError('Ошибка загрузки изображения');
+                        invertBtn.classList.remove('loading-btn');
+                    };
+                    
+                    img.src = event.target.result;
+                };
+                
+                reader.onerror = function() {
+                    showError('Ошибка чтения файла');
+                    invertBtn.classList.remove('loading-btn');
+                };
+                
+                reader.readAsDataURL(file);
+            }
+            
+            // Инвертирование изображения
+            invertBtn.addEventListener('click', function() {
+                if (!currentImage) return;
+                
+                // Показываем анимацию загрузки
+                invertBtn.classList.add('loading-btn');
+                downloadBtn.disabled = true;
+                
+                // Имитация загрузки для демонстрации анимации
+                setTimeout(() => {
+                    // Копируем оригинальное изображение на инвертированный canvas
+                    invertedCtx.drawImage(currentImage, 0, 0, invertedCanvas.width, invertedCanvas.height);
+                    
+                    // Получаем данные изображения
+                    const imageData = invertedCtx.getImageData(0, 0, invertedCanvas.width, invertedCanvas.height);
+                    const data = imageData.data;
+                    
+                    // Инвертируем цвета
+                    for (let i = 0; i < data.length; i += 4) {
+                        data[i] = 255 - data[i];     // red
+                        data[i + 1] = 255 - data[i + 1]; // green
+                        data[i + 2] = 255 - data[i + 2]; // blue
+                        // alpha (i+3) не изменяем
+                    }
+                    
+                    // Помещаем измененные данные обратно на canvas
+                    invertedCtx.putImageData(imageData, 0, 0);
+                    
+                    // Активируем кнопку скачивания
+                    downloadBtn.disabled = false;
+                    invertBtn.classList.remove('loading-btn');
+                    
+                    // Анимация результата
+                    invertedBox.style.animation = 'fadeIn 0.6s ease';
+                    setTimeout(() => {
+                        invertedBox.style.animation = '';
+                    }, 600);
+                }, 800);
+            });
+            
+            // Скачивание результата
+            downloadBtn.addEventListener('click', function() {
+                if (!invertedCanvas) return;
+                
+                // Показываем анимацию загрузки
+                downloadBtn.classList.add('loading-btn');
+                
+                setTimeout(() => {
+                    const link = document.createElement('a');
+                    link.download = 'inverted-image.png';
+                    link.href = invertedCanvas.toDataURL('image/png');
+                    link.click();
+                    
+                    // Возвращаем кнопку в исходное состояние
+                    setTimeout(() => {
+                        downloadBtn.classList.remove('loading-btn');
+                    }, 500);
+                }, 500);
+            });
+            
+            // Сброс
+            resetBtn.addEventListener('click', function() {
+                // Анимация исчезновения
+                originalBox.classList.remove('visible');
+                invertedBox.classList.remove('visible');
+                
+                setTimeout(() => {
+                    originalCtx.clearRect(0, 0, originalCanvas.width, originalCanvas.height);
+                    invertedCtx.clearRect(0, 0, invertedCanvas.width, invertedCanvas.height);
+                    fileInput.value = '';
+                    currentImage = null;
+                    
+                    // Деактивируем кнопки
+                    invertBtn.disabled = true;
+                    downloadBtn.disabled = true;
+                    resetBtn.disabled = true;
+                }, 300);
+            });
+            
+            function showError(message) {
+                alert(message);
+            }
+        });
+    </script>
+</body>
+</html>
